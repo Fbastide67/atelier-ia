@@ -432,10 +432,13 @@ print(filedialog.askdirectory(parent=racine, initialdir=sys.argv[1] or None, mus
 def choisir_dossier(req):
     """Fenêtre de Windows (ou du système) pour choisir n'importe quel dossier du PC comme dossier du projet."""
     depart = (req.corps.get("depart") or "").strip()
+    env = dict(os.environ, PYTHONIOENCODING="utf-8")  # sinon un dossier accentué revient en cp1252, illisible
     try:
         r = subprocess.run([sys.executable, "-c", SCRIPT_CHOIX_DOSSIER, depart if Path(depart).is_dir() else ""],
-                           capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600)
-    except (OSError, subprocess.TimeoutExpired) as e:
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=600)
+    except subprocess.TimeoutExpired:
+        raise ErreurAPI("Aucun dossier choisi : la fenêtre est restée ouverte plus de 10 minutes. Clique à nouveau sur « Choisir… ».")
+    except OSError as e:
         raise ErreurAPI(f"Impossible d'ouvrir la fenêtre de choix : {e}")
     if r.returncode != 0:
         raise ErreurAPI("Impossible d'ouvrir la fenêtre de choix (tkinter absent ?) : colle le chemin à la main.")

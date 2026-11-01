@@ -1124,10 +1124,11 @@ $("#choisir-dossier").onclick = async (e) => {
   const r = await essayer(() => api("POST", "/api/choisir-dossier", { depart: champ.value || projetCourant().espace }));
   bouton.disabled = false;
   if (generation !== etat.generation) return toast("Projet changé entre-temps : dossier choisi ignoré.", true);
-  if (r?.dossier) {
-    champ.value = r.dossier;
-    toast("Dossier choisi : clique sur « Enregistrer » pour l'adopter.");
-  }
+  if (!r?.dossier) return;
+  champ.value = r.dossier;
+  // Enregistré tout de suite : sinon le choix se perdait faute d'un clic sur « Enregistrer », tout en bas.
+  if (await essayer(() => api("PUT", `/api/projets/${etat.projetId}`, { dossier: r.dossier }),
+                    "Dossier enregistré : l'équipe y travaillera désormais.")) await charger();
 };
 $("#archiver-discussion").onclick = async () => {
   if (!confirm("Archiver la discussion ? Elle disparaît de l'écran mais reste sauvegardée dans le dossier des données. La mémoire du projet est conservée.")) return;
