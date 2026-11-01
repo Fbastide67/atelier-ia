@@ -303,7 +303,8 @@ legend { padding: 0 6px; }
 details summary { cursor: pointer; color: var(--encre-2); font-size: 13px; margin-top: 4px; }
 .outils { margin-bottom: 18px; }
 .outils td { font-size: 13px; }
-.outils td:last-child { text-align: left; }
+.outils td:first-child { width: 28%; }
+.outils td:last-child { text-align: left; white-space: normal; overflow-wrap: anywhere; }  /* chemins très longs */
 .encart { border: 1px solid var(--ligne); border-radius: 3px; padding: 14px 16px; margin-top: 28px; background: var(--surface); font-size: 13px; }
 .encart dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 0; }
 .encart dt { color: var(--encre-2); }

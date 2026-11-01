@@ -127,6 +127,31 @@ class Appel:
 
 # --- Trouver les exécutables -------------------------------------------------------
 
+def completer_path_windows():
+    """Lancé depuis un raccourci, l'Atelier hérite du PATH de l'Explorateur, figé à l'ouverture de la session :
+    un outil installé depuis (claude, codex, node…) y manque. On ajoute le PATH à jour lu dans le registre."""
+    if not WINDOWS:
+        return
+    import winreg
+    actuel = os.environ.get("PATH", "").split(os.pathsep)
+    ajouts = []
+    for racine, cle in ((winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment"),
+                        (winreg.HKEY_CURRENT_USER, "Environment")):
+        try:
+            with winreg.OpenKey(racine, cle) as k:
+                valeur = winreg.QueryValueEx(k, "Path")[0]
+        except OSError:
+            continue
+        for dossier in os.path.expandvars(valeur).split(os.pathsep):
+            if dossier and dossier not in actuel and dossier not in ajouts:
+                ajouts.append(dossier)
+    if ajouts:
+        os.environ["PATH"] = os.pathsep.join(actuel + ajouts)
+
+
+completer_path_windows()
+
+
 def trouver_executable(fournisseur):
     nom = FOURNISSEURS[fournisseur]["executable"]
     if not nom:

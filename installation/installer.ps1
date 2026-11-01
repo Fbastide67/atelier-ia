@@ -97,6 +97,8 @@ try {
         Echec "Adresse du site inconnue : télécharge l'installateur depuis la page de l'Atelier."
     }
     if (-not $Site.EndsWith("/")) { $Site += "/" }
+    # Lancé par double-clic, ce script hérite du PATH de l'Explorateur, parfois plus ancien que les outils déjà installés.
+    Rafraichir-Path
 
     # --- 1. Outils ------------------------------------------------------------------------------------
     Etape "Python"
@@ -113,7 +115,8 @@ try {
     if (-not (Trouver-Outil "claude")) {
         Info "Installation avec l'installateur officiel d'Anthropic..."
         # Dans un PowerShell séparé : le script officiel peut fermer sa fenêtre en finissant.
-        & powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://claude.ai/install.ps1 | iex" | Out-Host
+        # Sans barre de progression : sous Windows PowerShell 5.1, elle rend un gros téléchargement interminable.
+        & powershell -NoProfile -ExecutionPolicy Bypass -Command "`$ProgressPreference = 'SilentlyContinue'; irm https://claude.ai/install.ps1 | iex" | Out-Host
         Rafraichir-Path
         if (-not (Trouver-Outil "claude")) { Installer-Winget "Anthropic.ClaudeCode" "Claude Code" }
     }
