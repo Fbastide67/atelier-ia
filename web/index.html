@@ -26,8 +26,9 @@
             clique sur <i>Informations complémentaires</i> puis <i>Exécuter quand même</i>.</li>
           <li>Il installe ce qui manque (Python, Claude Code, et ChatGPT si tu le souhaites), puis démarre l'Atelier.
             Le moteur se relance tout seul à chaque démarrage de Windows.</li>
-          <li>Reviens sur cette page : elle se connecte toute seule. Si le navigateur demande l'accès
-            « aux appareils de ton réseau local », clique sur <b>Autoriser</b> : c'est ton propre PC.</li>
+          <li>Une fois l'installation terminée, connecte cette page au moteur. Le navigateur te demande alors l'accès
+            « aux appareils de ton réseau local » : clique sur <b>Autoriser</b>, c'est ton propre PC.
+            <p><button class="bouton principal moteur-reessayer">Me connecter au moteur</button></p></li>
         </ol>
         <p class="aide">Tes projets, discussions et connexions restent sur ton PC : rien ne passe par ce site.
           Fonctionne avec Chrome, Edge et Firefox (pas Safari).</p>
@@ -40,6 +41,17 @@
         <p class="aide">Si le navigateur demande l'accès « aux appareils de ton réseau local », clique sur <b>Autoriser</b>.</p>
       </div>
 
+      <div data-cas="bloque" hidden>
+        <h1>Ton navigateur bloque l'accès à ton PC</h1>
+        <p>L'accès « aux appareils du réseau local » a été refusé à ce site : il ne peut donc pas joindre le moteur
+          de l'Atelier installé sur ton PC.</p>
+        <ol class="etapes">
+          <li>Clique sur l'icône à gauche de l'adresse du site (réglages du site).</li>
+          <li>Mets <b>Accès au réseau local</b> (ou « Appareils du réseau local ») sur <b>Autoriser</b>.</li>
+          <li>Recharge la page.</li>
+        </ol>
+      </div>
+
       <div data-cas="refuse" hidden>
         <h1>Ce site n'est pas autorisé par ton moteur</h1>
         <p>Un Atelier tourne bien sur ce PC, mais il n'accepte pas les commandes de <b id="moteur-site"></b>.
@@ -48,7 +60,7 @@
       </div>
 
       <p class="moteur-pied"><span class="point-attente" aria-hidden="true"></span>
-        <span class="aide">Recherche du moteur sur ce PC…</span>
+        <span class="aide" id="moteur-etat">Recherche du moteur sur ce PC…</span>
         <button class="bouton texte moteur-reessayer">Réessayer maintenant</button></p>
     </div>
   </div>

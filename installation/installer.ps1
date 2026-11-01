@@ -193,7 +193,7 @@ try {
     Info "OK : le moteur tourne sur ce PC."
 
     Write-Host ""
-    Write-Host "  C'est prêt ! Retourne sur la page de l'Atelier : elle se connecte toute seule." -ForegroundColor Green
+    Write-Host "  C'est prêt ! Sur la page de l'Atelier, clique sur « Me connecter au moteur », puis sur « Autoriser »." -ForegroundColor Green
     Write-Host "  Ensuite : Comptes > Ajouter un compte > Claude > Se connecter (connexion sur le site officiel)."
     if (-not $Test) {
         Start-Process $Site

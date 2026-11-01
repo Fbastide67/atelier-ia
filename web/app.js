@@ -47,8 +47,16 @@ async function sonderMoteur(base) {
   }
 }
 
+async function accesReseauLocal() {
+  // Chrome demande au visiteur l'accès au réseau local (dont son propre PC) avant qu'un site joigne le moteur.
+  try {
+    return (await navigator.permissions.query({ name: "local-network-access" })).state;
+  } catch {
+    return null;  // navigateur sans cette autorisation : rien à demander
+  }
+}
+
 async function trouverMoteur() {
-  if (location.protocol.startsWith("http") && (await sonderMoteur(""))) return { base: "", autorise: true };
   // Tous les ports en même temps : sous Windows, un port fermé met ~2 s à répondre.
   const bases = PORTS_MOTEUR.map((p) => `http://127.0.0.1:${p}`);
   const reponses = await Promise.all(bases.map(sonderMoteur));
@@ -78,30 +86,48 @@ function telechargerInstallateur() {
 }
 
 let minuteurMoteur;
+let rechercheEnCours = false;
+
 function afficherMoteur(cas) {
   const ecran = $("#moteur");
   $$("[data-cas]", ecran).forEach((b) => (b.hidden = b.dataset.cas !== cas));
   $("#moteur-site").textContent = location.origin;
+  $("#moteur-etat").textContent = "Recherche du moteur sur ce PC…";
   ecran.hidden = false;
   clearTimeout(minuteurMoteur);
   minuteurMoteur = setTimeout(connecterMoteur, 3000);  // se connecte tout seul dès que le moteur répond
 }
 
-async function connecterMoteur() {
+// demande : le visiteur a cliqué. Sans clic, on ne déclenche pas la demande d'accès de Chrome
+// (sinon un nouveau visiteur la verrait avant même d'avoir installé le moteur).
+async function connecterMoteur(demande = false) {
   clearTimeout(minuteurMoteur);
-  const moteur = await trouverMoteur();
-  if (!moteur) return afficherMoteur(MOTEUR || etat.d ? "perdu" : "absent");
-  if (!moteur.autorise) return afficherMoteur("refuse");
-  const premiere = !etat.d;
-  MOTEUR = moteur.base;
-  $("#moteur").hidden = true;
+  if (rechercheEnCours) return;
+  rechercheEnCours = true;
   try {
-    await charger();
-  } catch (e) {
-    return toast(`Impossible de joindre l'Atelier : ${e.message}`, true);
+    let moteur = location.protocol.startsWith("http") && (await sonderMoteur("")) ? { base: "", autorise: true } : null;
+    if (!moteur) {
+      const acces = await accesReseauLocal();
+      if (acces === "denied") return afficherMoteur("bloque");
+      if (acces === "prompt" && !demande) return afficherMoteur(MOTEUR || etat.d ? "perdu" : "absent");
+      if (acces === "prompt") $("#moteur-etat").textContent = "Chrome te demande l'accès au réseau local : clique sur « Autoriser ».";
+      moteur = await trouverMoteur();
+    }
+    if (!moteur) return afficherMoteur(MOTEUR || etat.d ? "perdu" : "absent");
+    if (!moteur.autorise) return afficherMoteur("refuse");
+    const premiere = !etat.d;
+    MOTEUR = moteur.base;
+    $("#moteur").hidden = true;
+    try {
+      await charger();
+    } catch (e) {
+      return toast(`Impossible de joindre l'Atelier : ${e.message}`, true);
+    }
+    if (premiere && etat.d.projets.length) selectionnerProjet(etat.d.projets[0].id);
+    else if (etat.projetId) sonder();
+  } finally {
+    rechercheEnCours = false;
   }
-  if (premiere && etat.d.projets.length) selectionnerProjet(etat.d.projets[0].id);
-  else if (etat.projetId) sonder();
 }
 
 async function api(methode, chemin, corps) {
@@ -1151,6 +1177,6 @@ $("#nouveau-compte").onclick = nouveauCompte;
 $("#form-parametres").onsubmit = enregistrerParametres;
 
 $$(".moteur-telecharger").forEach((b) => (b.onclick = telechargerInstallateur));
-$$(".moteur-reessayer").forEach((b) => (b.onclick = connecterMoteur));
+$$(".moteur-reessayer").forEach((b) => (b.onclick = () => connecterMoteur(true)));
 
 connecterMoteur();
