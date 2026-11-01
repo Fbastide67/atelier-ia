@@ -30,6 +30,8 @@ jobs:
         run: |
           mkdir -p _site
           cp -r web/. _site/
+          # version dans l'adresse : après une mise à jour, le navigateur ne garde pas l'ancien app.js en cache
+          sed -i -E "s/(app\.js|style\.css)\"/\1?v=${GITHUB_SHA::8}\"/" _site/index.html
           cp installation/installer.ps1 _site/
           zip -r _site/moteur.zip app.py catalogue.py documents.py fournisseurs.py orchestrateur.py stockage.py \
             web lancer.bat installer-pdf.bat README.md
