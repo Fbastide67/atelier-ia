@@ -1,0 +1,40 @@
+# Publie le site de l'Atelier sur GitHub Pages à chaque envoi sur la branche main.
+# Le site contient l'interface (web/), l'installateur et moteur.zip (le moteur que les visiteurs installent).
+# À activer une fois : Settings > Pages > Source : « GitHub Actions ».
+name: Publier le site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploiement.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Préparer le site et le moteur
+        run: |
+          mkdir -p _site
+          cp -r web/. _site/
+          cp installation/installer.ps1 _site/
+          zip -r _site/moteur.zip app.py catalogue.py documents.py fournisseurs.py orchestrateur.py stockage.py \
+            web lancer.bat installer-pdf.bat README.md
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+      - id: deploiement
+        uses: actions/deploy-pages@v4

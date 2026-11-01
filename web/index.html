@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Atelier</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='1' y='1' width='14' height='14' fill='%231d1b17'/%3E%3Crect x='4' y='4' width='8' height='8' fill='%23b4532a'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- MOTEUR LOCAL : affiché tant que la page ne trouve pas l'Atelier installé sur ce PC -->
+  <div class="moteur" id="moteur">
+    <div class="moteur-carte">
+      <span class="sur-titre">Atelier</span>
+
+      <div data-cas="absent" hidden>
+        <h1>Une équipe d'IA qui travaille avec tes abonnements</h1>
+        <p>Claude, ChatGPT et Gemini discutent de ton projet, produisent les livrables et te consultent quand c'est utile.
+          Ils utilisent <b>tes propres abonnements</b> (Claude Pro/Max, ChatGPT Plus/Pro) : pas de clé API, pas de paiement au message.</p>
+        <p>Pour cela, l'Atelier a besoin d'un petit moteur sur ton PC : c'est lui qui lance les outils officiels
+          (Claude Code, Codex) connectés à tes comptes. Il s'installe une fois, en double-cliquant, sans rien taper.</p>
+        <ol class="etapes">
+          <li><button class="bouton principal moteur-telecharger">Télécharger l'installateur</button>
+            <span class="aide">Windows 10 ou 11</span></li>
+          <li><b>Double-clique</b> sur <code>Installer-Atelier.bat</code>. Si Windows affiche « Windows a protégé votre ordinateur »,
+            clique sur <i>Informations complémentaires</i> puis <i>Exécuter quand même</i>.</li>
+          <li>Il installe ce qui manque (Python, Claude Code, et ChatGPT si tu le souhaites), puis démarre l'Atelier.
+            Le moteur se relance tout seul à chaque démarrage de Windows.</li>
+          <li>Reviens sur cette page : elle se connecte toute seule. Si le navigateur demande l'accès
+            « aux appareils de ton réseau local », clique sur <b>Autoriser</b> : c'est ton propre PC.</li>
+        </ol>
+        <p class="aide">Tes projets, discussions et connexions restent sur ton PC : rien ne passe par ce site.
+          Fonctionne avec Chrome, Edge et Firefox (pas Safari).</p>
+      </div>
+
+      <div data-cas="perdu" hidden>
+        <h1>Le moteur de l'Atelier ne répond plus</h1>
+        <p>Il a peut-être été arrêté. Relance-le avec le raccourci <b>Atelier IA</b> du menu Démarrer
+          (ou en redémarrant le PC), puis attends quelques secondes : cette page se reconnecte toute seule.</p>
+        <p class="aide">Si le navigateur demande l'accès « aux appareils de ton réseau local », clique sur <b>Autoriser</b>.</p>
+      </div>
+
+      <div data-cas="refuse" hidden>
+        <h1>Ce site n'est pas autorisé par ton moteur</h1>
+        <p>Un Atelier tourne bien sur ce PC, mais il n'accepte pas les commandes de <b id="moteur-site"></b>.
+          Réinstalle-le depuis cette page pour l'autoriser : tes projets sont conservés.</p>
+        <p><button class="bouton principal moteur-telecharger">Télécharger l'installateur</button></p>
+      </div>
+
+      <p class="moteur-pied"><span class="point-attente" aria-hidden="true"></span>
+        <span class="aide">Recherche du moteur sur ce PC…</span>
+        <button class="bouton texte moteur-reessayer">Réessayer maintenant</button></p>
+    </div>
+  </div>
+
+  <header class="barre">
+    <a class="marque" href="#" id="accueil">Atelier</a>
+    <nav class="nav" aria-label="Sections">
+      <button class="nav-lien actif" data-vue="projets">Projets</button>
+      <button class="nav-lien" data-vue="profils">Profils</button>
+      <button class="nav-lien" data-vue="comptes">Comptes</button>
+      <button class="nav-lien" data-vue="reglages">Réglages</button>
+    </nav>
+  </header>
+
+  <!-- PROJETS --------------------------------------------------------------- -->
+  <main id="vue-projets" class="vue">
+    <aside class="colonne-projets">
+      <div class="colonne-tete">
+        <span class="sur-titre">Projets</span>
+        <button class="bouton petit" id="nouveau-projet">Nouveau</button>
+      </div>
+      <ul id="liste-projets" class="liste-projets"></ul>
+    </aside>
+
+    <section class="projet">
+      <div class="accueil" id="projet-vide">
+        <h1>Une équipe d'IA pour tes projets</h1>
+        <p>Chaque profil a un rôle, des consignes, des documents et un compte (Claude, ChatGPT ou Gemini).
+          Ils discutent du projet entre eux, produisent les livrables et te consultent quand c'est utile.</p>
+        <ol class="etapes">
+          <li><b>Comptes</b> : ajoute un compte « Simulation » pour essayer, puis tes vrais comptes.</li>
+          <li><b>Nouveau projet</b> : choisis le type de projet, l'Atelier propose une équipe adaptée.</li>
+          <li><b>Brief et documents</b> : explique le projet et joins tes documents, puis lance la discussion.</li>
+        </ol>
+      </div>
+
+      <div id="projet-contenu" hidden>
+        <div class="entete-projet">
+          <div class="titre-projet">
+            <span class="sur-titre" id="projet-type"></span>
+            <h1 id="projet-nom"></h1>
+            <div class="statut" id="projet-statut"></div>
+          </div>
+          <div class="commandes">
+            <button class="bouton" id="tour-suivant" title="Une seule intervention (en mode équipe : une séance où chacun travaille une fois)">Un tour</button>
+            <button class="bouton principal" id="lancer">Lancer</button>
+            <button class="bouton danger" id="stop" hidden>Arrêter</button>
+          </div>
+        </div>
+
+        <nav class="onglets" role="tablist">
+          <button class="onglet actif" data-panneau="discussion">Discussion</button>
+          <button class="onglet" data-panneau="documents">Documents <span class="compte" id="nb-documents"></span></button>
+          <button class="onglet" data-panneau="fichiers">Livrables</button>
+          <button class="onglet" data-panneau="memoire">Mémoire</button>
+          <button class="onglet" data-panneau="reglages-projet">Réglages</button>
+        </nav>
+
+        <!-- Discussion -->
+        <div class="panneau discussion" id="panneau-discussion">
+          <div class="fil-et-composer">
+            <div class="fil" id="fil" aria-live="polite"></div>
+            <div class="en-cours" id="en-cours" hidden></div>
+            <form class="composer" id="composer">
+              <div class="composer-ligne">
+                <label class="destinataire">À
+                  <select id="destinataire"></select>
+                </label>
+                <span class="aide" id="aide-destinataire">Écris @Nom pour donner la parole à quelqu'un.</span>
+              </div>
+              <textarea id="saisie" rows="3" placeholder="Ton message à l'équipe… (Ctrl+Entrée pour envoyer et lancer)"></textarea>
+              <div class="composer-ligne">
+                <div class="mentions" id="mentions"></div>
+                <button class="bouton" type="submit" value="envoyer">Envoyer</button>
+                <button class="bouton principal" type="submit" value="lancer" id="envoyer-lancer">Envoyer et lancer</button>
+              </div>
+            </form>
+          </div>
+          <aside class="equipe-laterale" aria-label="Équipe du projet">
+            <div class="sur-titre">Équipe</div>
+            <ul id="equipe-laterale"></ul>
+            <p class="aide" id="questions-resume"></p>
+          </aside>
+        </div>
+
+        <!-- Documents -->
+        <div class="panneau" id="panneau-documents" hidden>
+          <div class="depot" id="depot">
+            <p><b>Glisse tes documents ici</b> ou <label class="lien">choisis-les<input type="file" id="fichiers-projet" multiple hidden></label>.</p>
+            <p class="aide">Word, PowerPoint, Excel, OpenDocument, PDF, texte, CSV, images… 25 Mo maximum par fichier.
+              Le texte est extrait et donné aux IA destinataires à chaque intervention.</p>
+            <p class="aide alerte" id="alerte-pdf" hidden>Extraction du texte des PDF désactivée : lance <code>installer-pdf.bat</code>
+              (dans le dossier de l'Atelier) puis redémarre l'Atelier. Sans elle, seuls les profils avec accès lecture lisent les PDF.</p>
+          </div>
+          <table class="tableau" id="table-documents">
+            <thead><tr><th>Document</th><th>Texte lu</th><th>Destinataires</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <pre class="apercu" id="apercu-document" hidden></pre>
+        </div>
+
+        <!-- Livrables -->
+        <div class="panneau" id="panneau-fichiers" hidden>
+          <div class="ligne-outils">
+            <span class="chemin" id="chemin-espace"></span>
+            <button class="bouton" id="rafraichir-fichiers">Rafraîchir</button>
+            <button class="bouton" id="ouvrir-dossier">Ouvrir le dossier</button>
+          </div>
+          <div class="explorateur">
+            <ul class="liste-fichiers" id="liste-fichiers"></ul>
+            <pre class="apercu" id="apercu">Choisis un fichier pour l'afficher.</pre>
+          </div>
+        </div>
+
+        <!-- Mémoire -->
+        <div class="panneau" id="panneau-memoire" hidden>
+          <div class="deux-colonnes">
+            <div>
+              <h2>Mémoire du projet</h2>
+              <p class="aide">Relue par chaque IA à chaque intervention : décisions prises, avancement, questions ouvertes.
+                Elle remplace les vieux messages, ce qui économise ton quota.</p>
+              <textarea id="memoire-texte" rows="16"></textarea>
+              <div class="ligne-outils">
+                <button class="bouton principal" id="memoire-enregistrer">Enregistrer</button>
+                <span class="espaceur"></span>
+                <label class="en-ligne">Rédigée par <select id="memoire-profil"></select></label>
+                <button class="bouton" id="memoire-resumer">Mettre à jour maintenant</button>
+              </div>
+              <label class="en-ligne bloc">Mise à jour automatique toutes les
+                <input type="number" id="memoire-auto" min="0" max="100" class="nombre"> interventions
+                <span class="aide">(0 = jamais)</span></label>
+            </div>
+            <div>
+              <h2>Versions précédentes</h2>
+              <ul class="historique" id="memoire-historique"></ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Réglages du projet -->
+        <form class="panneau formulaire" id="panneau-reglages-projet" hidden>
+          <label>Nom du projet <input name="nom" required></label>
+          <label>Type de projet <select name="type" id="select-type"></select></label>
+          <label class="large">Brief : explique le projet comme à une équipe humaine
+            <textarea name="brief" rows="7" placeholder="Objectif, public, contenu, contraintes, délais, ce qui est déjà décidé…"></textarea></label>
+          <label class="large">Consignes pour toute l'équipe
+            <textarea name="consignes" rows="3" placeholder="Ex. Ton professionnel mais chaleureux. Budget total 500 €. Livrer en Markdown."></textarea></label>
+          <fieldset class="large">
+            <legend>Questions qu'elles te posent</legend>
+            <div class="choix-questions" id="choix-questions"></div>
+          </fieldset>
+          <fieldset class="large">
+            <legend>Façon de travailler</legend>
+            <div class="choix-questions choix-mode" id="choix-mode"></div>
+            <div class="reglages-equipe" id="reglages-equipe">
+              <label class="case"><input type="checkbox" name="points_etape">
+                <span>Point d'étape après chaque séance <span class="aide">: le coordinateur vérifie que le travail va dans le bon sens et répartit la suite.</span></span></label>
+              <label class="en-ligne">Coordinateur <select name="coordinateur" id="select-coordinateur"></select></label>
+            </div>
+          </fieldset>
+          <fieldset class="large">
+            <legend>Équipe, dans l'ordre de parole</legend>
+            <div id="equipe-reglages"></div>
+            <p class="aide">Coche les profils qui participent. « Consignes » : ce que ce profil doit savoir ou faire dans ce projet précis.</p>
+          </fieldset>
+          <label id="libelle-tours">Interventions par clic sur « Lancer » <input name="tours_par_lancement" type="number" min="1" max="50"></label>
+          <label>Messages relus par chaque IA <input name="historique_max" type="number" min="2" max="200">
+            <span class="aide">Moins de messages = moins de quota consommé.</span></label>
+          <label class="large">Dossier où l'équipe travaille, n'importe où sur ton PC (vide = dossier automatique)
+            <span class="ligne-dossier"><input name="dossier" placeholder="C:\Users\moi\Documents\mon-projet">
+              <button type="button" class="bouton" id="choisir-dossier">Choisir…</button></span>
+            <span class="aide">Les profils « Modification » y créent et modifient des fichiers et y lancent des commandes ; les profils « Lecture » le lisent.</span></label>
+          <div class="large ligne-outils">
+            <button class="bouton principal" type="submit">Enregistrer</button>
+            <span class="espaceur"></span>
+            <a class="bouton" id="exporter" download>Exporter la discussion</a>
+            <button class="bouton" type="button" id="archiver-discussion">Archiver la discussion</button>
+            <button class="bouton danger" type="button" id="supprimer-projet">Supprimer le projet</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- PROFILS ---------------------------------------------------------------- -->
+  <main id="vue-profils" class="vue" hidden>
+    <div class="page">
+      <div class="page-tete">
+        <div>
+          <h1>Profils</h1>
+          <p class="aide">Un profil = un rôle, des consignes, des documents, un compte et un modèle. Il peut servir dans plusieurs projets.</p>
+        </div>
+        <div class="ligne-outils">
+          <select id="modele-role" aria-label="Partir d'un rôle prêt à l'emploi"></select>
+          <button class="bouton principal" id="nouveau-profil">Nouveau profil</button>
+        </div>
+      </div>
+      <div id="liste-profils" class="lignes"></div>
+    </div>
+  </main>
+
+  <!-- COMPTES ---------------------------------------------------------------- -->
+  <main id="vue-comptes" class="vue" hidden>
+    <div class="page">
+      <div class="page-tete">
+        <div>
+          <h1>Comptes</h1>
+          <p class="aide">L'Atelier utilise tes abonnements à travers les outils officiels installés sur ce PC.
+            Il ne voit jamais tes mots de passe ni tes jetons : la connexion se fait dans la fenêtre de l'outil.</p>
+        </div>
+        <button class="bouton principal" id="nouveau-compte">Ajouter un compte</button>
+      </div>
+      <table class="tableau outils" id="etat-outils"></table>
+      <div id="liste-comptes" class="lignes"></div>
+    </div>
+  </main>
+
+  <!-- RÉGLAGES GÉNÉRAUX ------------------------------------------------------ -->
+  <main id="vue-reglages" class="vue" hidden>
+    <div class="page etroite">
+      <h1>Réglages</h1>
+      <form class="formulaire" id="form-parametres">
+        <label>Ton prénom <input name="nom_utilisateur" placeholder="Les IA s'adresseront à toi par ce prénom"></label>
+        <label>Langue des réponses <input name="langue" placeholder="français"></label>
+        <label class="large">Mémoire générale : ce que toutes les IA doivent savoir sur toi, dans tous tes projets
+          <textarea name="memoire_generale" rows="8" placeholder="Ex. Étudiant ingénieur à Marseille, cofondateur d'une association. Je préfère des réponses directes, avec des exemples. Je travaille sous Windows."></textarea></label>
+        <div class="large ligne-outils"><button class="bouton principal" type="submit">Enregistrer</button></div>
+      </form>
+      <div class="encart" id="infos-systeme"></div>
+    </div>
+  </main>
+
+  <dialog id="dialogue">
+    <form method="dialog" id="dialogue-form">
+      <h2 id="dialogue-titre"></h2>
+      <div id="dialogue-champs" class="formulaire"></div>
+      <div class="ligne-outils pied-dialogue">
+        <span class="espaceur"></span>
+        <button class="bouton" value="annuler" formnovalidate>Annuler</button>
+        <button class="bouton principal" value="ok" id="dialogue-ok">Enregistrer</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+  <script src="app.js"></script>
+</body>
+</html>
